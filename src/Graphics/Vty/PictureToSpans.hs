@@ -290,8 +290,8 @@ addMaybeClipped Raw {outputWidth, outputHeight, displayText} = do
     let outputWidth'  = min (outputWidth  - s^.skipColumns) (s^.remainingColumns)
         outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)
     y <- use rowOffset
-    snocOp (RawSpan outputWidth' displayText) y
-    forM_ [y+1..y+outputHeight'-1] $ snocOp (RawSpan outputWidth' (TL.pack ""))
+    forM_ [y..y+outputHeight'-1] $ snocOp (Skip outputWidth')
+    snocOp (RawSpan 0 displayText) (y+outputHeight'-1)
 addMaybeClipped Crop {croppedImage, leftSkip, topSkip, outputWidth, outputHeight} = do
     sx <- use skipColumns
     skipColumns += leftSkip
