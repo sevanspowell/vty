@@ -29,6 +29,7 @@ import Data.Monoid ((<>))
 #endif
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
+import qualified System.IO as IO
 
 import Graphics.Vty.Attributes
 import Graphics.Vty.DisplayAttributes
@@ -216,6 +217,8 @@ writeUtf8Text = writeByteString
 --      5. The cursor is then shown and positioned or kept hidden.
 outputPicture :: DisplayContext -> Picture -> IO ()
 outputPicture dc pic = do
+    hLog <- IO.openFile "vty.log" IO.AppendMode
+    IO.hSetBuffering hLog IO.NoBuffering
     urlsEnabled <- getModeStatus (contextDevice dc) Hyperlink
     as <- readIORef (assumedStateRef $ contextDevice dc)
     let manipCursor = supportsCursorVisibility (contextDevice dc)
@@ -254,6 +257,8 @@ outputPicture dc pic = do
                         in writeShowCursor dc `mappend`
                            writeMoveCursor dc (clampX ox) (clampY oy)
                 )
+    IO.hPutStrLn hLog (show ops)
+    IO.hPutStrLn hLog (show diffs)
     -- ... then serialize
     outputByteBuffer (contextDevice dc) (writeToByteString out)
     -- Cache the output spans.
