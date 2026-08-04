@@ -289,7 +289,7 @@ addMaybeClipped Raw {outputWidth, outputHeight, displayText} = do
     s <- get
     let outputWidth'  = min (outputWidth  - s^.skipColumns) (s^.remainingColumns)
         outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)
-    let op = RawSpan outputWidth' displayText
+    let op = RawSpan 0 displayText
     use rowOffset >>= snocOp op
     y <- use rowOffset
     snocOp op y

@@ -96,7 +96,7 @@ splitOpsAt = splitOpsAt'
             r@(RawSpan {}) ->
               if remainingColumns >= rawSpanOutputWidth r
               then let (pre,post) = splitOpsAt' (remainingColumns - rawSpanOutputWidth r)
-                                                  (Vector.tail ops)
+                                                (Vector.tail ops)
                    in (Vector.cons r pre, post)
               else let preTxt = rawSpanText r
                        preOp = RawSpan { rawSpanOutputWidth = remainingColumns
