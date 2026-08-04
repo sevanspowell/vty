@@ -285,7 +285,7 @@ addMaybeClipped BGFill {outputWidth, outputHeight} = do
         outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)
     y <- use rowOffset
     forM_ [y..y+outputHeight'-1] $ snocOp (Skip outputWidth')
-addMaybeClipped Graphic {outputWidth, outputHeight, displayText} = do
+addMaybeClipped Raw {outputWidth, outputHeight, displayText} = do
     s <- get
     let outputWidth'  = min (outputWidth  - s^.skipColumns) (s^.remainingColumns)
         outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)

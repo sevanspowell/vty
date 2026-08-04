@@ -295,6 +295,9 @@ writeSpanOp urlsEnabled dc (TextSpan attr _ _ str) fattr =
         out =  writeSetAttr dc urlsEnabled fattr attr' diffs
                `mappend` writeUtf8Text (T.encodeUtf8 $ TL.toStrict str)
     in (out, fattr')
+writeSpanOp _urlsEnabled _dc (RawSpan _ str) fattr =
+    let out = writeUtf8Text (T.encodeUtf8 $ TL.toStrict str)
+    in (out, fattr)
 writeSpanOp _ _ (Skip _) _fattr = error "writeSpanOp for Skip"
 writeSpanOp urlsEnabled dc (RowEnd _) fattr = (writeDefaultAttr dc urlsEnabled `mappend` writeRowEnd dc, fattr)
 
