@@ -257,8 +257,8 @@ outputPicture dc pic = do
                         in writeShowCursor dc `mappend`
                            writeMoveCursor dc (clampX ox) (clampY oy)
                 )
-    IO.hPutStrLn hLog (show ops)
-    IO.hPutStrLn hLog (show diffs)
+    IO.hPutStrLn hLog (show $ writeToByteString out)
+    -- IO.hPutStrLn hLog (show diffs)
     IO.hClose hLog
     -- ... then serialize
     outputByteBuffer (contextDevice dc) (writeToByteString out)
