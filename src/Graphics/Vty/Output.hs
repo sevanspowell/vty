@@ -259,6 +259,7 @@ outputPicture dc pic = do
                 )
     IO.hPutStrLn hLog (show ops)
     IO.hPutStrLn hLog (show diffs)
+    IO.hClose hLog
     -- ... then serialize
     outputByteBuffer (contextDevice dc) (writeToByteString out)
     -- Cache the output spans.
