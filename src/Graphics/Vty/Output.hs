@@ -229,11 +229,9 @@ outputPicture dc pic = do
         -- Differences are currently on a per-row basis.
         diffs :: [Bool] = case prevOutputOps as of
             Nothing -> replicate (fromEnum $ regionHeight $ affectedRegion ops) True
-            Just previousOps ->
-              replicate (displayOpsRows ops) True
-              -- if affectedRegion previousOps /= affectedRegion ops
-              --   then replicate (displayOpsRows ops) True
-              --   else Vector.toList $ Vector.zipWith (/=) previousOps ops
+            Just previousOps -> if affectedRegion previousOps /= affectedRegion ops
+                then replicate (displayOpsRows ops) True
+                else Vector.toList $ Vector.zipWith (/=) previousOps ops
         -- build the Write corresponding to the output image
         out = (if manipCursor then writeHideCursor dc else mempty)
               `mappend` writeOutputOps urlsEnabled dc initialAttr diffs ops
