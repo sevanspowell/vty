@@ -45,6 +45,10 @@ data SpanOp =
       , textSpanCharWidth :: !Int
       , textSpanText :: TL.Text
       }
+    | RawSpan
+      { rawSpanOutputWidth :: !Int
+      , rawSpanText :: TL.Text
+      }
     -- | Skips the given number of columns.
     | Skip !Int
     -- | Marks the end of a row. Specifies how many columns are
@@ -89,6 +93,23 @@ splitOpsAt = splitOpsAt'
                      in ( Vector.singleton preOp
                         , Vector.cons postOp (Vector.tail ops)
                         )
+            r@(RawSpan {}) ->
+              if remainingColumns >= rawSpanOutputWidth r
+              then let (pre,post) = splitOpsAt' (remainingColumns - rawSpanOutputWidth r)
+                                                  (Vector.tail ops)
+                   in (Vector.cons r pre, post)
+              else let preTxt = rawSpanText r
+                       preOp = RawSpan { rawSpanOutputWidth = remainingColumns
+                                       , rawSpanText = preTxt
+                                       }
+                       postWidth = rawSpanOutputWidth r - remainingColumns
+                       postTxt = TL.pack ""
+                       postOp = RawSpan { rawSpanOutputWidth = postWidth
+                                        , rawSpanText = postTxt
+                                        }
+                   in ( Vector.singleton preOp
+                      , Vector.cons postOp (Vector.tail ops)
+                      )
             Skip w -> if remainingColumns >= w
                 then let (pre,post) = splitOpsAt' (remainingColumns - w) (Vector.tail ops)
                      in (Vector.cons (Skip w) pre, post)
@@ -105,6 +126,7 @@ instance Show SpanOp where
     show (TextSpan attr ow cw _) = "TextSpan(" ++ show attr ++ ")(" ++ show ow ++ ", " ++ show cw ++ ")"
     show (Skip ow) = "Skip(" ++ show ow ++ ")"
     show (RowEnd ow) = "RowEnd(" ++ show ow ++ ")"
+    show (RawSpan ow _) = "RawSpan(" ++ show ow ++ ")"
 
 -- | The number of columns the DisplayOps are defined for.
 --
@@ -126,12 +148,14 @@ spanOpsAffectedColumns :: SpanOps -> Int
 spanOpsAffectedColumns inOps = Vector.foldl' spanOpsAffectedColumns' 0 inOps
     where
         spanOpsAffectedColumns' t (TextSpan _ w _ _ ) = t + w
+        spanOpsAffectedColumns' t (RawSpan w _) = t + w
         spanOpsAffectedColumns' t (Skip w) = t + w
         spanOpsAffectedColumns' t (RowEnd w) = t + w
 
 -- | The width of a single SpanOp in columns.
 spanOpHasWidth :: SpanOp -> Maybe (Int, Int)
 spanOpHasWidth (TextSpan _ ow cw _) = Just (cw, ow)
+spanOpHasWidth (RawSpan ow _) = Just (ow, ow)
 spanOpHasWidth (Skip ow) = Just (ow,ow)
 spanOpHasWidth (RowEnd ow) = Just (ow,ow)
 
@@ -140,5 +164,6 @@ spanOpHasWidth (RowEnd ow) = Just (ow,ow)
 columnsToCharOffset :: Int -> SpanOp -> Int
 columnsToCharOffset cx (TextSpan _ _ _ utf8Str) =
     wctlwidth (TL.take (fromIntegral cx) utf8Str)
+columnsToCharOffset cx (RawSpan _ _) = cx
 columnsToCharOffset cx (Skip _) = cx
 columnsToCharOffset cx (RowEnd _) = cx

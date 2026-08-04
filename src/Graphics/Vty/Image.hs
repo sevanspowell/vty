@@ -22,6 +22,7 @@ module Graphics.Vty.Image
   , utf8Bytestring
   , utf8Bytestring'
   , charFill
+  , raw
   -- * Combinators
   , horizJoin
   , (<|>)
@@ -203,6 +204,9 @@ charFill a c w h
 
     charWidth   :: Num a => a
     charWidth    = fromIntegral w
+
+raw :: Integral d => T.Text -> d -> d -> Image
+raw str w h = Raw (fromIntegral w) (fromIntegral h) (TL.fromStrict str)
 
 -- | The empty image. Useful for fold combinators. These occupy no space
 -- and do not affect display attributes.

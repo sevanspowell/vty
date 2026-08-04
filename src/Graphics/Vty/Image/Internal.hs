@@ -111,6 +111,11 @@ data Image =
       , outputWidth :: Int
       , outputHeight :: Int
       }
+    | Raw
+      { outputWidth :: Int
+      , outputHeight :: Int
+      , displayText :: TL.Text
+      }
     -- | The empty image
     --
     -- The combining operators identity constant.
@@ -139,6 +144,8 @@ ppImageStructure = go 0
         pp i (Crop {croppedImage, leftSkip, topSkip, outputWidth, outputHeight})
             = "Crop(" ++ show leftSkip ++ "," ++ show topSkip ++ "," ++ show outputWidth ++ "," ++ show outputHeight ++ ")\n"
               ++ go (i+1) croppedImage
+        pp _ (Raw {outputWidth, outputHeight, displayText})
+            = "Raw(" ++ show outputWidth ++ "," ++ show outputHeight ++ "," ++ show displayText ++ ")\n"
         pp _ EmptyImage = "EmptyImage"
 
 instance NFData Image where
@@ -148,6 +155,7 @@ instance NFData Image where
     rnf (VertJoin t b w h) = t `deepseq` b `deepseq` w `seq` h `seq` ()
     rnf (HorizJoin l r w h) = l `deepseq` r `deepseq` w `seq` h `seq` ()
     rnf (HorizText a s w cw) = a `seq` s `deepseq` w `seq` cw `seq` ()
+    rnf (Raw w h s) = w `seq` h `seq` s `deepseq` ()
 
 -- | The width of an Image. This is the number display columns the image
 -- will occupy.
@@ -157,6 +165,7 @@ imageWidth HorizJoin { outputWidth = w } = w
 imageWidth VertJoin { outputWidth = w } = w
 imageWidth BGFill { outputWidth = w } = w
 imageWidth Crop { outputWidth = w } = w
+imageWidth Raw { outputWidth = w } = w
 imageWidth EmptyImage = 0
 
 -- | The height of an Image. This is the number of display rows the
@@ -167,6 +176,7 @@ imageHeight HorizJoin { outputHeight = h } = h
 imageHeight VertJoin { outputHeight = h } = h
 imageHeight BGFill { outputHeight = h } = h
 imageHeight Crop { outputHeight = h } = h
+imageHeight Raw { outputHeight = h } = h
 imageHeight EmptyImage = 0
 
 -- | Append in the 'Semigroup' instance is equivalent to '<->'.

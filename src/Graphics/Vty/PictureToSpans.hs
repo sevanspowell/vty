@@ -161,6 +161,12 @@ mergeRowUnder upperRowOps =
             in if Vector.null lowerOps'
                 then outOps'
                 else onUpperOp outOps' (Vector.head upperOps) (Vector.tail upperOps) lowerOps'
+        onUpperOp outOps op@(RawSpan w _) upperOps lowerOps =
+            let lowerOps' = dropOps w lowerOps
+                outOps' = Vector.snoc outOps op
+            in if Vector.null lowerOps'
+                then outOps'
+                else onUpperOp outOps' (Vector.head upperOps) (Vector.tail upperOps) lowerOps'
         onUpperOp outOps (Skip w) upperOps lowerOps =
             let (ops', lowerOps') = splitOpsAt w lowerOps
                 outOps' = outOps `mappend` ops'
@@ -279,6 +285,15 @@ addMaybeClipped BGFill {outputWidth, outputHeight} = do
         outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)
     y <- use rowOffset
     forM_ [y..y+outputHeight'-1] $ snocOp (Skip outputWidth')
+addMaybeClipped Graphic {outputWidth, outputHeight, displayText} = do
+    s <- get
+    let outputWidth'  = min (outputWidth  - s^.skipColumns) (s^.remainingColumns)
+        outputHeight' = min (outputHeight - s^.skipRows   ) (s^.remainingRows)
+    let op = RawSpan outputWidth' displayText
+    use rowOffset >>= snocOp op
+    y <- use rowOffset
+    snocOp op y
+    forM_ [y+1..y+outputHeight'-1] $ snocOp (Skip outputWidth')
 addMaybeClipped Crop {croppedImage, leftSkip, topSkip, outputWidth, outputHeight} = do
     sx <- use skipColumns
     skipColumns += leftSkip
