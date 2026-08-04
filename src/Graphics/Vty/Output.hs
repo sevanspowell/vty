@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards, CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- | This module provides an abstract interface for performing terminal
 -- output and functions for accessing the current terminal or a specific
 -- terminal device.
@@ -229,7 +230,7 @@ outputPicture dc pic = do
         -- Differences are currently on a per-row basis.
         diffs :: [Bool] = case prevOutputOps as of
             Nothing -> replicate (fromEnum $ regionHeight $ affectedRegion ops) True
-            Just previousOps ->
+            Just _previousOps ->
               replicate (displayOpsRows ops) True
               -- if affectedRegion previousOps /= affectedRegion ops
               --   then replicate (displayOpsRows ops) True
@@ -263,7 +264,7 @@ outputPicture dc pic = do
     -- IO.hPutStrLn hLog (show diffs)
     IO.hClose hLog
     -- ... then serialize
-    outputByteBuffer (contextDevice dc) (writeToByteString out)
+    outputByteBuffer (contextDevice dc) (T.encodeUtf8 "\x1b_Gc=30,a=p,i=5;\x1b\\") --writeToByteString out)
     -- Cache the output spans.
     let as' = as { prevOutputOps = Just ops }
     writeIORef (assumedStateRef $ contextDevice dc) as'
